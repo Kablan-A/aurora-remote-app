@@ -1,6 +1,8 @@
 import * as React from "react";
 import Input from "./Input";
 
+const MIN_AGE = 18;
+
 export default function Form() {
 	const [formData, setFormData] = React.useState({
 		name: "",
@@ -11,13 +13,20 @@ export default function Form() {
 		setFormData({ ...formData, [e.target.name]: e.target.value });
 	};
 
+	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		console.log("Form submitted with data:", formData);
+		setFormData({ name: "", age: "" });
+	};
+
 	return (
-		<form className='p-4 space-y-4'>
+		<form className='p-4 space-y-4' onSubmit={handleSubmit}>
 			<div className='space-y-2'>
 				<label htmlFor='name' className='block'>
 					Name:
 				</label>
 				<Input
+					required
 					id='name'
 					placeholder='Enter your name'
 					name='name'
@@ -30,10 +39,12 @@ export default function Form() {
 					Age:
 				</label>
 				<Input
+					required
 					id='age'
 					placeholder='Enter your age'
 					type='number'
 					name='age'
+					min={MIN_AGE}
 					onChange={handleChange}
 				/>
 			</div>

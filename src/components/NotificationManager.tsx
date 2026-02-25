@@ -22,6 +22,18 @@ export default function NotificationManager() {
 			emitter.emit("new-notification", notification);
 		};
 
+		ws.onerror = (ev) => {
+			console.error("WebSocket error:", ev);
+
+			const errorNotification: Notification = {
+				id: crypto.randomUUID(),
+				message: "WebSocket connection error",
+				date: new Date().toString(),
+			};
+
+			emitter.emit("new-notification", errorNotification);
+		};
+
 		return () => {
 			ws.close();
 		};
