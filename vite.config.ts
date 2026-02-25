@@ -16,6 +16,7 @@ export default defineConfig({
         './Input': './src/components/Input',
         './Catalog': './src/components/Catalog',
         './NotificationManager': './src/components/NotificationManager',
+        './emitter': './src/emitter',
       },
       shared: ['react', 'react-dom'],
     })

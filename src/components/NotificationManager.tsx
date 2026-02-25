@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { Notification } from "../lib/types";
+import emitter from "../emitter";
 
 export default function NotificationManager() {
 	const [notificationsList, setNotificationsList] = React.useState<
@@ -17,6 +18,8 @@ export default function NotificationManager() {
 			const notification = JSON.parse(event.data) as Notification;
 
 			setNotificationsList((prev) => [...prev, notification]);
+
+			emitter.emit("new-notification", notification);
 		};
 
 		return () => {
