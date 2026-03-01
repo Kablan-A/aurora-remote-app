@@ -17,6 +17,19 @@ export const handlers = [
       data: { components }
     })
   }),
+  graphql.mutation('CreateProfile', ({ variables }) => {
+    const { age, name } = variables;
+
+    return HttpResponse.json({
+      data: {
+        createProfile: {
+          id: crypto.randomUUID(),
+          name,
+          age,
+        }
+      }
+    })
+  }),
   wsLink.addEventListener("connection", ({ client }) => {
     const interval = setInterval(() => {
       const notification: Notification = {

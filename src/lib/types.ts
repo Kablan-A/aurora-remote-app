@@ -8,3 +8,9 @@ export type Notification = {
   message: string;
   date: string;
 }
+
+export type UserProfile = {
+  id: string;
+  name: string;
+  age: number;
+}

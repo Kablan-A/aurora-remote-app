@@ -1,23 +1,74 @@
 import * as React from "react";
 import Input from "./Input";
+import { gql, type TypedDocumentNode } from "@apollo/client";
+import type { Notification, UserProfile } from "../lib/types";
+import { useMutation } from "@apollo/client/react";
+import emitter from "../emitter";
 
 const MIN_AGE = 18;
 
+type CreateProfileMutation = {
+	createProfile: UserProfile;
+};
+
+type CreateProfileVariables = Omit<UserProfile, "id">;
+
+const CREATE_PROFILE: TypedDocumentNode<
+	CreateProfileMutation,
+	CreateProfileVariables
+> = gql`
+	mutation CreateProfile($name: String!, $age: Int!) {
+		createProfile(name: $name, age: $age) {
+			id
+			name
+			age
+		}
+	}
+`;
+
 export default function Form() {
+	const [createProfile, { loading }] = useMutation(CREATE_PROFILE);
+
 	const [formData, setFormData] = React.useState({
 		name: "",
 		age: "",
 	});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setFormData({ ...formData, [e.target.name]: e.target.value });
+		const { name, value } = e.target;
+
+		setFormData({ ...formData, [name]: value });
 	};
 
-	const handleSubmit = (e: React.SubmitEvent<HTMLFormElement>) => {
+	const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		console.log("Form submitted with data:", formData);
-		setFormData({ name: "", age: "" });
+
+		await createProfile({
+			variables: {
+				name: formData.name,
+				age: parseInt(formData.age, 10),
+			},
+		})
+			.then(({ data, error }) => {
+				const notificationMessage = error
+					? `Error creating profile: ${error.message}`
+					: `Profile created successfully: ${data?.createProfile.name} (${data?.createProfile.age} years old)`;
+
+				const newNotification: Notification = {
+					id: crypto.randomUUID(),
+					message: notificationMessage,
+					date: new Date().toString(),
+				};
+
+				emitter.emit("new-notification", newNotification);
+			})
+			.finally(() => {
+				setFormData({ name: "", age: "" });
+			});
 	};
+
+	const isSubmitDisabled =
+		!formData.name || parseInt(formData.age, 10) < MIN_AGE || loading;
 
 	return (
 		<form className='p-4 space-y-4' onSubmit={handleSubmit}>
@@ -30,6 +81,7 @@ export default function Form() {
 					id='name'
 					placeholder='Enter your name'
 					name='name'
+					value={formData.name}
 					onChange={handleChange}
 				/>
 			</div>
@@ -45,6 +97,7 @@ export default function Form() {
 					type='number'
 					name='age'
 					min={MIN_AGE}
+					value={formData.age}
 					onChange={handleChange}
 				/>
 			</div>
@@ -54,8 +107,9 @@ export default function Form() {
 				border-transparent text-sm font-medium focus-visible:ring-3
 				disabled:pointer-events-none disabled:opacity-50 outline-none cursor-pointer
 				transition-colors'
+				disabled={isSubmitDisabled}
 			>
-				Submit
+				{loading ? "Submitting..." : "Submit"}
 			</button>
 		</form>
 	);
